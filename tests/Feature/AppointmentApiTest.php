@@ -6,12 +6,11 @@ use App\Models\Service;
 use App\Models\Appointment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class AppointmentApiTest extends TestCase
 {
-    use DatabaseMigrations, RefreshDatabase;
+    use DatabaseMigrations;
     
     /**
      * Test getting available slots.
@@ -45,7 +44,7 @@ class AppointmentApiTest extends TestCase
         $response->assertJson([
             'data' => [
                 'available_slots' => [
-                    $service->id => [
+                    $service->name => [
                         [
                             'slot_id' => $appointment1->id,
                             'start_time' => '2023-06-15 10:00:00',
@@ -100,7 +99,7 @@ class AppointmentApiTest extends TestCase
                 'appointments' => [
                     [
                         'appointment_id' => $appointment->id,
-                        'service_id' => $appointment->service_id,
+                        'service_name' => $appointment->service->name,
                         'start_time' => '2023-06-15 10:00:00',
                         'email' => 'test@example.com',
                         'first_name' => 'John',

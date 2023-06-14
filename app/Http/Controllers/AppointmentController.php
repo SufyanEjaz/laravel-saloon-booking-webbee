@@ -25,7 +25,10 @@ class AppointmentController extends Controller
         $serviceId = $request->input('service_id');
         $date = $request->input('date');
 
-        $query = Appointment::select('id as slot_id','num_clients as client_capacity','start_time','service_id')->where('num_clients', '>', 0)->orderBy('start_time');
+        $query = Appointment::select('id as slot_id','num_clients as client_capacity','start_time','service_id','duration')
+            ->with('service')
+            ->where('num_clients', '>', 0)
+            ->orderBy('start_time');
 
         if ($serviceId) {
             $query->where('service_id', $serviceId);
@@ -37,7 +40,7 @@ class AppointmentController extends Controller
 
         $appointments = $query->get();
         // Group the appointments by service if needed
-        $availableSlots = $appointments->groupBy('service_id')->toArray();
+        $availableSlots = $appointments->groupBy('service.name')->toArray();
 
         if (empty($availableSlots)) {
             return response()->json(['message' => 'No slots found for this service'], 404);
@@ -70,7 +73,7 @@ class AppointmentController extends Controller
             $email = $slot['email'];
             $name = $slot['first_name'] . ' ' . $slot['last_name'];
 
-            $appointment = Appointment::where('id', $slot['appointment_id'])
+            $appointment = Appointment::with('service')->where('id', $slot['appointment_id'])
                 ->where('num_clients', '>', 0)
                 ->where('start_time', $slot['start_time'])
                 ->first();
@@ -91,12 +94,12 @@ class AppointmentController extends Controller
             ]);
 
             $bookedAppointments[] = [
-                'appointment_id' => $slot['appointment_id'],
-                'service_id' => $appointment['service_id'],
-                'start_time' => $slot['start_time'],
-                'email' => $email,
-                'first_name' => $slot['first_name'],
-                'last_name' => $slot['last_name'],
+                'appointment_id' => $slot['appointment_id'] ?? '',
+                'service_name' => $appointment['service']['name'] ?? '',
+                'start_time' => $slot['start_time'] ?? '',
+                'email' => $email ?? '',
+                'first_name' => $slot['first_name'] ?? '',
+                'last_name' => $slot['last_name'] ?? '',
             ];
         }
 

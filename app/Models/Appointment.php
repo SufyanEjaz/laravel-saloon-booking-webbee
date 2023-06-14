@@ -15,4 +15,9 @@ class Appointment extends Model
         'duration',
         'num_clients'
     ];
+
+    public function service()
+    {
+        return $this->belongsTo(Service::class);
+    }
 }
